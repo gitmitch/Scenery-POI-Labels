@@ -21,14 +21,15 @@ To setup your development environment:
 
 Running the tests
 -----------------
-
-  cd data/modules/Custom\ Module
-  busted
-
+```
+cd data/modules/Custom\ Module
+busted
+```
 Reviewing the test coverage report
 ----------------------------------
 
 Again, in the `data/modules/Custom\ Module` directory:
-
-  luacov
-  cat luacov.report.out | more
+```
+luacov
+cat luacov.report.out | more
+```
