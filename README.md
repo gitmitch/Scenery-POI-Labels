@@ -15,8 +15,20 @@ Development
 
 To setup your development environment:
 
-1. Install [Lua](https://www.lua.org/) (for Mac, I recommend using [Homebrew](https://brew.sh/))
-2. Install [Busted](https://olivinelabs.com/busted/) (I recommend installing using [Luarocks](https://luarocks.org/))
+1. Install [Lua](https://www.lua.org/) (for Mac, I recommend using [Homebrew](https://brew.sh/): `brew update` and `brew install lua`)
+2. Install [Busted](https://olivinelabs.com/busted/) (I recommend installing using [Luarocks](https://luarocks.org/): `brew install luarocks && luarocks install busted`)
+3. Install [LuaCov](https://keplerproject.github.io/luacov/) (`luarocks install luacov`)
 
 Running the tests
 -----------------
+
+  cd data/modules/Custom\ Module
+  busted
+
+Reviewing the test coverage report
+----------------------------------
+
+Again, in the `data/modules/Custom\ Module` directory:
+
+  luacov
+  cat luacov.report.out | more
