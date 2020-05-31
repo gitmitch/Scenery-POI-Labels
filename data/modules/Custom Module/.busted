@@ -3,6 +3,6 @@ return {
     coverage = true,
     ROOT = {"tests"},
     verbose = true,
-    lpath = "../?.lua"
+    lpath = "../?.lua;./?.lua"
   }
 }

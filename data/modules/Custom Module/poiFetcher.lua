@@ -1,3 +1,4 @@
+
 poiFetcher = {
   fetchPOIs = function ()
     -- local latitude = globalProperty("sim/flightmodel/position/latitude")

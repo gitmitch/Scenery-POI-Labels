@@ -13,11 +13,14 @@ This plugin uses the [SASL plugin framework](https://1-sim.com/). All of the log
 Development
 ===========
 
-To setup your development environment:
+To setup your development environment, be sure to install Lua 5.1 so you're developing and testing with the same version of Lua that LuaJIT uses in X Plane (v5.1 as of X Plane 11.41). You'll also need [Busted](https://olivinelabs.com/busted/) for running tests and [LuaCov](https://keplerproject.github.io/luacov/) for test coverage analysis. Here's how I did it on my Mac (note: I tried an approach with Homebrew but was unsuccessful).
 
-1. Install [Lua](https://www.lua.org/) (for Mac, I recommend using [Homebrew](https://brew.sh/): `brew update` and `brew install lua`)
-2. Install [Busted](https://olivinelabs.com/busted/) (I recommend installing using [Luarocks](https://luarocks.org/): `brew install luarocks && luarocks install busted`)
-3. Install [LuaCov](https://keplerproject.github.io/luacov/) (`luarocks install luacov`)
+1. Install [hererocks](https://github.com/mpeterv/hererocks): `pip3 install hererocks` . You'll need Python and Pip to install it.
+2. Make a directory somewhere for your installation of Lua, Luarocks, etc. (hererocks gave me an error for directories with a space in the path).
+3. In that directory, `hererocks lua51 -l5.1 -rlatest` to install Lua 5.1 with the latest luarocks.
+4. Activate that installation (add the necessary paths to your shell) with `source lua51/bin/activate`. You should also `source` this command in your .bashrc or .zshrc so that the paths are active each time you login.
+5. `luarocks install busted`
+6. `luarocks install luacov`
 
 Running the tests
 -----------------
