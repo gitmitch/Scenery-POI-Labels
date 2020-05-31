@@ -1,0 +1,8 @@
+return {
+  _all = {
+    coverage = true,
+    ROOT = {"tests"},
+    verbose = true,
+    lpath = "../?.lua"
+  }
+}
