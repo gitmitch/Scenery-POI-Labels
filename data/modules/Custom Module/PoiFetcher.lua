@@ -22,23 +22,3 @@ function PoiFetcher:new (o)
   setmetatable(o, self)
   return o
 end
-
--- poiFetcher = {
---   refreshNeeded = true,
-
---   fetchPOIs = function ()
---     -- local latitude = globalProperty("sim/flightmodel/position/latitude")
---     -- local longitude = globalProperty("sim/flightmodel/position/longitude")
-
---     -- sasl.logDebug("poiFetcher coordinates: " .. get(latitude) .. ", " .. get(longitude))
-
---     return true
---   end,
-
---   setCurrentOrigin = function (latitude, longitude, altitude)
---     if poiFetcher.refreshNeeded then
---       poiFetcher.sasl.downloadFileAsync()
---       poiFetcher.refreshNeeded = false
---     end
---   end
--- }
