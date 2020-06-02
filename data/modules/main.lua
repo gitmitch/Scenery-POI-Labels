@@ -1,5 +1,5 @@
 require("constants")
-require("poiFetcher")
+require("PoiFetcher")
 require("customLogger")
 
 debugLogger("module loaded")
