@@ -1,18 +1,10 @@
 require("constants")
 require("PoiFetcher")
 
-print("Lua version: " .. _VERSION)
-
 describe("POI Fetcher", function()
   local poiFetcher
     before_each(function()
-      poiFetcher = PoiFetcher:new {
-        sasl = {
-          downloadFileAsync = function ()
-            print("downloadFileAsync called")
-          end
-        }
-      }
+      poiFetcher = PoiFetcher:new({})
       stub(poiFetcher.sasl, "downloadFileAsync")
     end)
   describe("Set current origin", function ()
