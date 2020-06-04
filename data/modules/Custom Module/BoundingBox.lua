@@ -1,4 +1,6 @@
-BoundingBox = {
+local constants = require "constants"
+
+local BoundingBox = {
   targetLatitude = 0,
   targetLongitude = 0
 }
@@ -15,8 +17,6 @@ end
 function BoundingBox:calculateBounds ()
   -- https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL#Global_bounding_box_.28bbox.29
   -- "The values are, in order: southern-most latitude, western-most longitude, northern-most latitude, eastern-most longitude."
-
-  -- print(self.targetLatitude, self.targetLongitude)
 
   self.areaInMetersSquared = nil
 
@@ -43,3 +43,17 @@ function BoundingBox:calculateBounds ()
   self.northernLatitude = northernLatitude
   self.easternLongitude = easternLongitude
 end
+
+local function areaOnEarthInSquareMeters(coordinates)
+  -- http://mathforum.org/library/drmath/view/63767.html
+  -- WARNING: this function will take the long way around the globe when coordinates traverse the antimeridian.
+  -- Instead of traversing the antimeridian, the calculation will traverse the prime meridian, giving a much higher
+  -- result than expected. Split your geometry into chunks that you can sum together if you need to calculate an area
+  -- that crosses the antimeridian.
+  return (math.pi/180.0) * (constants.EARTH_RADIUS_IN_METERS^2) * math.abs(math.sin(math.rad(coordinates.latitude1)) - math.sin(math.rad(coordinates.latitude2))) * math.abs(coordinates.longitude1 - coordinates.longitude2)
+end
+
+return {
+  BoundingBox = BoundingBox,
+  areaOnEarthInSquareMeters = areaOnEarthInSquareMeters
+}

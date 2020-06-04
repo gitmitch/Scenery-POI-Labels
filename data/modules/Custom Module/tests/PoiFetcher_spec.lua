@@ -1,4 +1,3 @@
-require("constants")
 require("PoiFetcher")
 
 describe("POI Fetcher", function()

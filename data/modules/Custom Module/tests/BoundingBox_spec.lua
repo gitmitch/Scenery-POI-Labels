@@ -1,5 +1,6 @@
-require("constants")
-require("BoundingBox")
+local constants = require "constants"
+local boundingBoxModule = require "BoundingBox"
+local BoundingBox = boundingBoxModule.BoundingBox
 
 
 describe("Bounding box from coordinates", function()
@@ -131,7 +132,7 @@ describe("Bounding box from coordinates", function()
     assert.are.equal(expectedNorthernLat, box.northernLatitude)
     assert.are.equal(expectedEasternLon, box.easternLongitude)
   end)
-  it("works at 180 degrees longitude", function ()
+  it("works at the antimeridian", function ()
     local targetLat = 0
     local targetLon = 180
     local expectedSouthernLat = 0
@@ -151,8 +152,64 @@ describe("Bounding box from coordinates", function()
   end)
 end)
 
-describe("Boxes for coverage area", function()
-  it("returns a single box for a small area that fits")
+describe("Area within coordinates", function()
+  -- http://mathforum.org/library/drmath/view/63767.html
+  it("calculates the area of Colorado", function ()
+    -- https://www.google.com/search?q=area+of+colorado+in+square+kilometers
+    
+    local area = boundingBoxModule.areaOnEarthInSquareMeters({
+      latitude1 = 41,
+      longitude1 = -102.05,
+      latitude2 = 37,
+      longitude2 = -109.05
+    })
+
+    local difference = math.abs(area - 268993.86 * 1000000)
+    assert.is_true(difference <= 3000)
+  end)
+  it("calculates the area of another example", function()
+    -- https://www.mathworks.com/help/map/ref/areaquad.html
+    local area = boundingBoxModule.areaOnEarthInSquareMeters({
+      latitude1 = 30,
+      longitude1 = -25,
+      latitude2 = 45,
+      longitude2 = 60
+    })
+
+    local difference = math.abs(area - 12471130.46 * 1000000)
+    assert.is_true(difference <= 3000)
+  end)
+  it("calculates the area near the prime meridian", function()
+    local area = boundingBoxModule.areaOnEarthInSquareMeters({
+      latitude1 = 0,
+      longitude1 = 1,
+      latitude2 = 1,
+      longitude2 = -1
+    })
+
+    local difference = math.abs(area - 24727.37 * 1000000)
+    assert.is_true(difference <= 3000)
+  end)
+  it("takes the long way around the globe instead of crossing the antimeridian", function()
+    local area = boundingBoxModule.areaOnEarthInSquareMeters({
+      latitude1 = 0,
+      longitude1 = 179,
+      latitude2 = 1,
+      longitude2 = -179
+    })
+
+    local difference = math.abs(area - 4426198.87 * 1000000)
+    assert.is_true(difference <= 3000)
+  end)
+end)
+
+describe("Boxes based on desired coverage area", function()
+  it("returns a single box for a small area that fits", function ()
+    -- local targetLatitude = 45
+    -- local targetLongitude = -120
+
+
+  end)
   it("returns multiple boxes to cover the desired area")
-  it("does not return duplicate boxes")
+  it("returns a large number of boxes to cover the desired area")
 end)
