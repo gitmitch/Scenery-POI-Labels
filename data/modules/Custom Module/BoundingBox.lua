@@ -53,7 +53,33 @@ local function areaOnEarthInSquareMeters(coordinates)
   return (math.pi/180.0) * (constants.EARTH_RADIUS_IN_METERS^2) * math.abs(math.sin(math.rad(coordinates.latitude1)) - math.sin(math.rad(coordinates.latitude2))) * math.abs(coordinates.longitude1 - coordinates.longitude2)
 end
 
+local function greatCircleDistanceInMeters(lat1, lon1, lat2, lon2)
+  -- https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+  local R = constants.EARTH_RADIUS_IN_METERS; -- Radius of the earth in m
+  local dLat = math.rad(lat2-lat1);  -- math.rad below
+  local dLon = math.rad(lon2-lon1); 
+  local a = 
+    math.sin(dLat/2) * math.sin(dLat/2) +
+    math.cos(math.rad(lat1)) * math.cos(math.rad(lat2)) * 
+    math.sin(dLon/2) * math.sin(dLon/2)
+  local c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)); 
+  local d = R * c; -- Distance in m
+  return d;
+end
+
+local function boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+  local boxes = {}
+  boxes[1] = BoundingBox:new({
+    targetLatitude = targetLatitude,
+    targetLongitude = targetLongitude
+  })
+
+  return boxes
+end
+
 return {
   BoundingBox = BoundingBox,
-  areaOnEarthInSquareMeters = areaOnEarthInSquareMeters
+  areaOnEarthInSquareMeters = areaOnEarthInSquareMeters,
+  boxesForCoverageArea = boxesForCoverageArea,
+  greatCircleDistanceInMeters = greatCircleDistanceInMeters
 }

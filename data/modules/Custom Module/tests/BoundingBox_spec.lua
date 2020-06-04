@@ -156,7 +156,7 @@ describe("Area within coordinates", function()
   -- http://mathforum.org/library/drmath/view/63767.html
   it("calculates the area of Colorado", function ()
     -- https://www.google.com/search?q=area+of+colorado+in+square+kilometers
-    
+
     local area = boundingBoxModule.areaOnEarthInSquareMeters({
       latitude1 = 41,
       longitude1 = -102.05,
@@ -203,13 +203,85 @@ describe("Area within coordinates", function()
   end)
 end)
 
-describe("Boxes based on desired coverage area", function()
-  it("returns a single box for a small area that fits", function ()
-    -- local targetLatitude = 45
-    -- local targetLongitude = -120
-
-
+describe("Great circle distance calculator", function()
+  it("calculates great circle distance along a latitude", function()
+    local distanceInMeters = boundingBoxModule.greatCircleDistanceInMeters(45.5, -120.5, 45.5, -121)
+    local difference = math.abs(39.0 - distanceInMeters/1000)
+    assert.is_true(difference <= 1)
   end)
-  it("returns multiple boxes to cover the desired area")
-  it("returns a large number of boxes to cover the desired area")
+  it("calculates great circle distance along a longitude", function()
+    local distanceInMeters = boundingBoxModule.greatCircleDistanceInMeters(45.5, -120, 46.5, -120)
+    local difference = math.abs(111.0 - distanceInMeters/1000)
+    assert.is_true(difference <= 1)
+  end)
+  it("calculates great circle distance along an arbitrary path", function()
+    local distanceInMeters = boundingBoxModule.greatCircleDistanceInMeters(45, -120, 46, -121)
+    local difference = math.abs(136.0 - distanceInMeters/1000)
+    assert.is_true(difference <= 1)
+  end)
 end)
+
+local function setContainsBox(table, box)
+  for i=1, #table do
+    if table[i].southernLatitude == box.southernLatitude
+      and table[i].westernLongitude == box.westernLongitude
+      and table[i].northernLatitude == box.northernLatitude
+      and table[i].easternLongitude == box.easternLongitude then return true end
+  end
+  return false
+end
+
+describe("Coordinates at a given distance and bearing away", function()
+  -- https://stackoverflow.com/questions/7222382/get-lat-long-given-current-point-distance-and-bearing
+  -- http://www.movable-type.co.uk/scripts/latlong.html
+  it("works along a latitude bearing")
+  it("works along a longitude bearing")
+  it("works along an arbitrary bearing")
+end)
+
+-- describe("Boxes based on desired coverage area", function()
+--   it("returns a single box for a small area that fits", function ()
+--     local targetLatitude = 45.5
+--     local targetLongitude = 120.5
+--     local desiredCoverageAreaInMeters = 38000
+
+--     local expectedNumberOfBoxes = 1
+--     local expectedBox = BoundingBox:new({
+--       targetLatitude = targetLatitude,
+--       targetLongitude = targetLongitude
+--     })
+
+--     areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+--     assert.are.equal(1, #areaBoxes)
+--     assert.are.same(expectedBox, areaBoxes[1])
+--   end)
+--   it("returns multiple boxes to cover the desired area along latitudes", function ()
+--     local targetLatitude = 45.5
+--     local targetLongitude = 120.5
+--     local desiredCoverageAreaInMeters = 55000
+
+--     local expectedNumberOfBoxes = 3
+--     local expectedBoxes = {
+--       BoundingBox:new({
+--         targetLatitude = targetLatitude,
+--         targetLongitude = targetLongitude
+--       }),
+--       BoundingBox:new({
+--         targetLatitude = targetLatitude,
+--         targetLongitude = targetLongitude-1
+--       }),
+--       BoundingBox:new({
+--         targetLatitude = targetLatitude,
+--         targetLongitude = targetLongitude+1
+--       })
+--     }
+
+--     areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+--     assert.are.equal(3, #areaBoxes)
+--     for i=1, #expectedBoxes do
+--       assert.is_true(setContainsBox(areaBoxes, expectedBoxes[i]))
+--     end
+--   end)
+--   it("returns multiple boxes to cover the desired area along longitudes")
+--   it("returns a large number of boxes to cover the desired area")
+-- end)
