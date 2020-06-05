@@ -231,12 +231,40 @@ local function setContainsBox(table, box)
   return false
 end
 
-describe("Coordinates at a given distance and bearing away", function()
-  -- https://stackoverflow.com/questions/7222382/get-lat-long-given-current-point-distance-and-bearing
-  -- http://www.movable-type.co.uk/scripts/latlong.html
-  it("works along a latitude bearing")
-  it("works along a longitude bearing")
-  it("works along an arbitrary bearing")
+describe("Coordinates at a given distance away along latitude/longitude line", function()
+  -- https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
+  it("works along a latitude for one degree of longitude", function ()
+    local latitude = 37.26383
+    local distanceInMeters = 88000
+    local expectedDegreesOfLongitude = 1
+
+    local actualDegreesOfLongitude = boundingBoxModule.longitudeDegreesAway(latitude, distanceInMeters)
+    local difference = math.abs(expectedDegreesOfLongitude - actualDegreesOfLongitude)
+    assert.is_true(difference <= 0.01)
+  end)
+  it("works along a latitude for many degrees of longitude", function ()
+    local latitude = 10
+    local distanceInMeters = 10^6
+    local expectedDegreesOfLongitude = 9.123
+
+    local actualDegreesOfLongitude = boundingBoxModule.longitudeDegreesAway(latitude, distanceInMeters)
+    local difference = math.abs(expectedDegreesOfLongitude - actualDegreesOfLongitude)
+    assert.is_true(difference <= 0.01)
+  end)
+  it("works along a longitude for one degree of latitude", function ()
+    local distanceInMeters = 111000
+
+    local actualDegreesOfLatitude = boundingBoxModule.latitudeDegreesAway(distanceInMeters)
+    local difference = math.abs(actualDegreesOfLatitude - 1)
+    assert.is_true(difference < 0.01)
+  end)
+  it("works along a longitude for many degrees of latitude", function()
+    local distanceInMeters = 10^6
+
+    local actualDegreesOfLatitude = boundingBoxModule.latitudeDegreesAway(distanceInMeters)
+    local difference = math.abs(actualDegreesOfLatitude - 9)
+    assert.is_true(difference < 0.01)
+  end)
 end)
 
 -- describe("Boxes based on desired coverage area", function()

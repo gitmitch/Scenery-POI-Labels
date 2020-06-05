@@ -57,12 +57,12 @@ local function greatCircleDistanceInMeters(lat1, lon1, lat2, lon2)
   -- https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
   local R = constants.EARTH_RADIUS_IN_METERS; -- Radius of the earth in m
   local dLat = math.rad(lat2-lat1);  -- math.rad below
-  local dLon = math.rad(lon2-lon1); 
-  local a = 
+  local dLon = math.rad(lon2-lon1);
+  local a =
     math.sin(dLat/2) * math.sin(dLat/2) +
-    math.cos(math.rad(lat1)) * math.cos(math.rad(lat2)) * 
+    math.cos(math.rad(lat1)) * math.cos(math.rad(lat2)) *
     math.sin(dLon/2) * math.sin(dLon/2)
-  local c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)); 
+  local c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a));
   local d = R * c; -- Distance in m
   return d;
 end
@@ -77,9 +77,19 @@ local function boxesForCoverageArea(targetLatitude, targetLongitude, desiredCove
   return boxes
 end
 
+local function longitudeDegreesAway(latitude, distanceInMeters)
+  return distanceInMeters / (math.cos(math.rad(latitude)) * constants.DISTANCE_OF_1_DEG_LONGITUDE_AT_EQUATOR_IN_METERS)
+end
+
+local function latitudeDegreesAway(distanceInMeters)
+  return distanceInMeters / constants.DISTANCE_OF_1_DEG_LATITUDE_IN_METERS
+end
+
 return {
   BoundingBox = BoundingBox,
   areaOnEarthInSquareMeters = areaOnEarthInSquareMeters,
   boxesForCoverageArea = boxesForCoverageArea,
-  greatCircleDistanceInMeters = greatCircleDistanceInMeters
+  greatCircleDistanceInMeters = greatCircleDistanceInMeters,
+  longitudeDegreesAway = longitudeDegreesAway,
+  latitudeDegreesAway = latitudeDegreesAway
 }
