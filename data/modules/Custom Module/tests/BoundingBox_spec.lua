@@ -150,6 +150,18 @@ describe("Bounding box from coordinates", function()
     assert.are.equal(expectedNorthernLat, box.northernLatitude)
     assert.are.equal(expectedEasternLon, box.easternLongitude)
   end)
+  it("returns a hash that can be used for testing equivalence", function ()
+    local box = BoundingBox:new({
+      targetLatitude = 0,
+      targetLongitude = 0
+    })
+    assert.are.equal(box:hash(), "0,0,1,1")
+    local box = BoundingBox:new({
+      targetLatitude = -1.5,
+      targetLongitude = -1.5
+    })
+    assert.are.equal(box:hash(), "-2,-2,-1,-1")
+  end)
 end)
 
 describe("Area within coordinates", function()
@@ -257,18 +269,26 @@ describe("Coordinates at a given distance away along latitude/longitude line", f
   end)
 end)
 
+local function boxesAreEqual(box1, box2)
+  return box1.southernLatitude == box2.southernLatitude
+  and box1.westernLongitude == box2.westernLongitude
+  and box1.northernLatitude == box2.northernLatitude
+  and box1.easternLongitude == box2.easternLongitude
+end
+
+local function printBoxArrayContents(boxes)
+  for i=1, #boxes do
+    print(string.format("%d, %d, %d, %d", boxes[i].southernLatitude, boxes[i].westernLongitude, boxes[i].northernLatitude, boxes[i].easternLongitude))
+  end
+end
+
 local function setContainsBox(set, box)
   for i=1, #set do
-    if set[i].southernLatitude == box.southernLatitude
-      and set[i].westernLongitude == box.westernLongitude
-      and set[i].northernLatitude == box.northernLatitude
-      and set[i].easternLongitude == box.easternLongitude then return true end
+    if boxesAreEqual(set[i], box) then return true end
   end
   print(string.format("this box was not found in the set: %d, %d, %d, %d", box.southernLatitude, box.westernLongitude, box.northernLatitude, box.easternLongitude))
   print("set contents:")
-  for i=1, #set do
-    print(string.format("%d, %d, %d, %d", set[i].southernLatitude, set[i].westernLongitude, set[i].northernLatitude, set[i].easternLongitude))
-  end
+  printBoxArrayContents(set)
   return false
 end
 
@@ -285,8 +305,8 @@ describe("Boxes based on desired coverage area", function()
     })
 
     areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
-    assert.are.equal(1, #areaBoxes)
-    assert.are.same(expectedBox, areaBoxes[1])
+    assert.are.equal(expectedNumberOfBoxes, #areaBoxes)
+    assert.is_true(boxesAreEqual(expectedBox, areaBoxes[1]), "Expected box and actual box are equal")
   end)
   it("returns multiple boxes to cover the desired area along latitudes", function ()
     local targetLatitude = 45.5
@@ -310,13 +330,218 @@ describe("Boxes based on desired coverage area", function()
     }
 
     areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
-    assert.are.equal(3, #areaBoxes)
+    assert.are.equal(expectedNumberOfBoxes, #areaBoxes)
     for i=1, #expectedBoxes do
       assert.is_true(setContainsBox(areaBoxes, expectedBoxes[i]), "Box index " .. i .. " is not in set")
     end
   end)
-  it("returns multiple boxes to cover the desired area along longitudes")
-  it("returns a large number of boxes to cover the desired area")
-  it("works around the antimeridian")
-  it("works around the poles")
+  it("returns multiple boxes to cover the desired area along both latitudes and longitudes", function ()
+    local targetLatitude = 0.5
+    local targetLongitude = 120.5
+    local desiredCoverageAreaInMeters = 221000
+
+    local expectedNumberOfBoxes = 25
+    local expectedBoxes = {
+      -- east-west
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude-1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude-2
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude+1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude+2
+      }),
+      -- north-south
+      BoundingBox:new({
+        targetLatitude = targetLatitude+1,
+        targetLongitude = targetLongitude
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude+2,
+        targetLongitude = targetLongitude
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-1,
+        targetLongitude = targetLongitude
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-2,
+        targetLongitude = targetLongitude
+      }),
+      -- diagonal boxes
+      BoundingBox:new({
+        targetLatitude = targetLatitude-1,
+        targetLongitude = targetLongitude+1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-1,
+        targetLongitude = targetLongitude+2
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-2,
+        targetLongitude = targetLongitude+1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-2,
+        targetLongitude = targetLongitude+2
+      }),
+
+      BoundingBox:new({
+        targetLatitude = targetLatitude-1,
+        targetLongitude = targetLongitude-1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-1,
+        targetLongitude = targetLongitude-2
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-2,
+        targetLongitude = targetLongitude-1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude-2,
+        targetLongitude = targetLongitude-2
+      }),
+
+      BoundingBox:new({
+        targetLatitude = targetLatitude+1,
+        targetLongitude = targetLongitude+1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude+1,
+        targetLongitude = targetLongitude+2
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude+2,
+        targetLongitude = targetLongitude+1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude+2,
+        targetLongitude = targetLongitude+2
+      }),
+
+      BoundingBox:new({
+        targetLatitude = targetLatitude+1,
+        targetLongitude = targetLongitude-1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude+1,
+        targetLongitude = targetLongitude-2
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude+2,
+        targetLongitude = targetLongitude-1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude+2,
+        targetLongitude = targetLongitude-2
+      })
+    }
+
+    areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+    assert.are.equal(expectedNumberOfBoxes, #areaBoxes)
+    for i=1, #expectedBoxes do
+      assert.is_true(setContainsBox(areaBoxes, expectedBoxes[i]), "Box index " .. i .. " is not in set")
+    end
+  end)
+  it("halts at the antimeridian from the east", function ()
+    local targetLatitude = 80.5
+    local targetLongitude = 179.5
+    local desiredCoverageAreaInMeters = 37000
+
+    local expectedNumberOfBoxes = 3
+    local expectedBoxes = {
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude-1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude-2
+      })
+    }
+
+    areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+    assert.are.equal(expectedNumberOfBoxes, #areaBoxes)
+    for i=1, #expectedBoxes do
+      assert.is_true(setContainsBox(areaBoxes, expectedBoxes[i]), "Box index " .. i .. " is not in set")
+    end
+  end)
+  it("halts at the antimeridian from the west", function ()
+    local targetLatitude = 80.5
+    local targetLongitude = -179.5
+    local desiredCoverageAreaInMeters = 37000
+
+    local expectedNumberOfBoxes = 3
+    local expectedBoxes = {
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude+1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude+2
+      })
+    }
+
+    areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+    assert.are.equal(expectedNumberOfBoxes, #areaBoxes)
+    for i=1, #expectedBoxes do
+      assert.is_true(setContainsBox(areaBoxes, expectedBoxes[i]), "Box index " .. i .. " is not in set")
+    end
+  end)
+  it("halts at the north pole with no duplicate boxes", function ()
+    local targetLatitude = 89.9
+    local targetLongitude = 0.1
+    local desiredCoverageAreaInMeters = 50000
+
+    areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+    assert.is_true(#areaBoxes > 1, "Expected more than one box")
+
+    local boxCounts = {}
+    for i=1, #areaBoxes do
+      assert.are.equal(89, areaBoxes[i].southernLatitude)
+      assert.are.equal(90, areaBoxes[i].northernLatitude)
+
+      boxCounts[areaBoxes[i]:hash()] = (boxCounts[areaBoxes[i]:hash()] or 0) + 1
+      assert.are.equal(boxCounts[areaBoxes[i]:hash()], 1)
+    end
+  end)
+  it("halts at the south pole with no duplicate boxes", function ()
+    local targetLatitude = -89.9
+    local targetLongitude = 0.1
+    local desiredCoverageAreaInMeters = 50000
+
+    areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+    assert.is_true(#areaBoxes > 1, "Expected more than one box")
+
+    local boxCounts = {}
+    for i=1, #areaBoxes do
+      assert.are.equal(-90, areaBoxes[i].southernLatitude)
+      assert.are.equal(-89, areaBoxes[i].northernLatitude)
+
+      boxCounts[areaBoxes[i]:hash()] = (boxCounts[areaBoxes[i]:hash()] or 0) + 1
+      assert.are.equal(boxCounts[areaBoxes[i]:hash()], 1)
+    end
+  end)
 end)

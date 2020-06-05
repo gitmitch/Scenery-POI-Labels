@@ -44,6 +44,10 @@ function BoundingBox:calculateBounds ()
   self.easternLongitude = easternLongitude
 end
 
+function BoundingBox:hash ()
+  return string.format("%d,%d,%d,%d", self.southernLatitude, self.westernLongitude, self.northernLatitude, self.easternLongitude)
+end
+
 local function areaOnEarthInSquareMeters(coordinates)
   -- http://mathforum.org/library/drmath/view/63767.html
   -- WARNING: this function will take the long way around the globe when coordinates traverse the antimeridian.
@@ -79,29 +83,29 @@ end
 
 local function boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
   local boxes = {}
-  boxes[1] = BoundingBox:new({
-    targetLatitude = targetLatitude,
-    targetLongitude = targetLongitude
-  })
 
   local longitudeDegreesInEachDirection = longitudeDegreesAway(targetLatitude, desiredCoverageAreaInMeters)
-  local westernLongitudeExtent = targetLongitude - longitudeDegreesInEachDirection
-  local easternLongitudeExtent = targetLongitude + longitudeDegreesInEachDirection
+  local westernLongitudeExtent = math.max(targetLongitude - longitudeDegreesInEachDirection, -179.9)
+  local easternLongitudeExtent = math.min(targetLongitude + longitudeDegreesInEachDirection, 179.9)
 
-  while boxes[#boxes].westernLongitude > westernLongitudeExtent do
-    boxes[#boxes+1] = BoundingBox:new({
-      targetLatitude = targetLatitude,
-      targetLongitude = boxes[#boxes].westernLongitude - 1
-    })
-  end
+  local latitudeDegreesInEachDirection = latitudeDegreesAway(desiredCoverageAreaInMeters)
+  local northernLatitudeExtent = math.min(targetLatitude + latitudeDegreesInEachDirection, 89)
+  local southernLatitudeExtent = math.max(targetLatitude - latitudeDegreesInEachDirection, -90)
 
-  local boxIndexToCheck = 1
-  while boxes[boxIndexToCheck].easternLongitude < easternLongitudeExtent do
-    boxes[#boxes+1] = BoundingBox:new({
-      targetLatitude = targetLatitude,
-      targetLongitude = boxes[boxIndexToCheck].westernLongitude + 1
-    })
-    boxIndexToCheck = #boxes
+  -- print("northern: " .. northernLatitudeExtent .. " southern: " .. southernLatitudeExtent)
+
+  local currentLongitude = westernLongitudeExtent
+  while math.floor(currentLongitude) <= easternLongitudeExtent do
+    local currentLatitude = southernLatitudeExtent
+    while math.floor(currentLatitude) <= northernLatitudeExtent do
+      boxes[#boxes+1] = BoundingBox:new({
+        targetLatitude = currentLatitude,
+        targetLongitude = currentLongitude
+      })
+      -- print(string.format("at %d, %d; added new box: %d, %d, %d, %d", currentLatitude, currentLongitude, boxes[#boxes].southernLatitude, boxes[#boxes].westernLongitude, boxes[#boxes].northernLatitude, boxes[#boxes].easternLongitude))
+      currentLatitude = currentLatitude + 1
+    end
+    currentLongitude = currentLongitude + 1
   end
 
   return boxes
