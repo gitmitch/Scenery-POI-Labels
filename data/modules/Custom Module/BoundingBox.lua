@@ -67,6 +67,16 @@ local function greatCircleDistanceInMeters(lat1, lon1, lat2, lon2)
   return d;
 end
 
+local function longitudeDegreesAway(latitude, distanceInMeters)
+  -- https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
+  return distanceInMeters / (math.cos(math.rad(latitude)) * constants.DISTANCE_OF_1_DEG_LONGITUDE_AT_EQUATOR_IN_METERS)
+end
+
+local function latitudeDegreesAway(distanceInMeters)
+  -- https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
+  return distanceInMeters / constants.DISTANCE_OF_1_DEG_LATITUDE_IN_METERS
+end
+
 local function boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
   local boxes = {}
   boxes[1] = BoundingBox:new({
@@ -74,15 +84,27 @@ local function boxesForCoverageArea(targetLatitude, targetLongitude, desiredCove
     targetLongitude = targetLongitude
   })
 
+  local longitudeDegreesInEachDirection = longitudeDegreesAway(targetLatitude, desiredCoverageAreaInMeters)
+  local westernLongitudeExtent = targetLongitude - longitudeDegreesInEachDirection
+  local easternLongitudeExtent = targetLongitude + longitudeDegreesInEachDirection
+
+  while boxes[#boxes].westernLongitude > westernLongitudeExtent do
+    boxes[#boxes+1] = BoundingBox:new({
+      targetLatitude = targetLatitude,
+      targetLongitude = boxes[#boxes].westernLongitude - 1
+    })
+  end
+
+  local boxIndexToCheck = 1
+  while boxes[boxIndexToCheck].easternLongitude < easternLongitudeExtent do
+    boxes[#boxes+1] = BoundingBox:new({
+      targetLatitude = targetLatitude,
+      targetLongitude = boxes[boxIndexToCheck].westernLongitude + 1
+    })
+    boxIndexToCheck = #boxes
+  end
+
   return boxes
-end
-
-local function longitudeDegreesAway(latitude, distanceInMeters)
-  return distanceInMeters / (math.cos(math.rad(latitude)) * constants.DISTANCE_OF_1_DEG_LONGITUDE_AT_EQUATOR_IN_METERS)
-end
-
-local function latitudeDegreesAway(distanceInMeters)
-  return distanceInMeters / constants.DISTANCE_OF_1_DEG_LATITUDE_IN_METERS
 end
 
 return {

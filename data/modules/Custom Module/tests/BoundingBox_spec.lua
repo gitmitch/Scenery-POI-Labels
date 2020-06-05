@@ -221,16 +221,6 @@ describe("Great circle distance calculator", function()
   end)
 end)
 
-local function setContainsBox(table, box)
-  for i=1, #table do
-    if table[i].southernLatitude == box.southernLatitude
-      and table[i].westernLongitude == box.westernLongitude
-      and table[i].northernLatitude == box.northernLatitude
-      and table[i].easternLongitude == box.easternLongitude then return true end
-  end
-  return false
-end
-
 describe("Coordinates at a given distance away along latitude/longitude line", function()
   -- https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
   it("works along a latitude for one degree of longitude", function ()
@@ -267,49 +257,66 @@ describe("Coordinates at a given distance away along latitude/longitude line", f
   end)
 end)
 
--- describe("Boxes based on desired coverage area", function()
---   it("returns a single box for a small area that fits", function ()
---     local targetLatitude = 45.5
---     local targetLongitude = 120.5
---     local desiredCoverageAreaInMeters = 38000
+local function setContainsBox(set, box)
+  for i=1, #set do
+    if set[i].southernLatitude == box.southernLatitude
+      and set[i].westernLongitude == box.westernLongitude
+      and set[i].northernLatitude == box.northernLatitude
+      and set[i].easternLongitude == box.easternLongitude then return true end
+  end
+  print(string.format("this box was not found in the set: %d, %d, %d, %d", box.southernLatitude, box.westernLongitude, box.northernLatitude, box.easternLongitude))
+  print("set contents:")
+  for i=1, #set do
+    print(string.format("%d, %d, %d, %d", set[i].southernLatitude, set[i].westernLongitude, set[i].northernLatitude, set[i].easternLongitude))
+  end
+  return false
+end
 
---     local expectedNumberOfBoxes = 1
---     local expectedBox = BoundingBox:new({
---       targetLatitude = targetLatitude,
---       targetLongitude = targetLongitude
---     })
+describe("Boxes based on desired coverage area", function()
+  it("returns a single box for a small area that fits", function ()
+    local targetLatitude = 45.5
+    local targetLongitude = 120.5
+    local desiredCoverageAreaInMeters = 38000
 
---     areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
---     assert.are.equal(1, #areaBoxes)
---     assert.are.same(expectedBox, areaBoxes[1])
---   end)
---   it("returns multiple boxes to cover the desired area along latitudes", function ()
---     local targetLatitude = 45.5
---     local targetLongitude = 120.5
---     local desiredCoverageAreaInMeters = 55000
+    local expectedNumberOfBoxes = 1
+    local expectedBox = BoundingBox:new({
+      targetLatitude = targetLatitude,
+      targetLongitude = targetLongitude
+    })
 
---     local expectedNumberOfBoxes = 3
---     local expectedBoxes = {
---       BoundingBox:new({
---         targetLatitude = targetLatitude,
---         targetLongitude = targetLongitude
---       }),
---       BoundingBox:new({
---         targetLatitude = targetLatitude,
---         targetLongitude = targetLongitude-1
---       }),
---       BoundingBox:new({
---         targetLatitude = targetLatitude,
---         targetLongitude = targetLongitude+1
---       })
---     }
+    areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+    assert.are.equal(1, #areaBoxes)
+    assert.are.same(expectedBox, areaBoxes[1])
+  end)
+  it("returns multiple boxes to cover the desired area along latitudes", function ()
+    local targetLatitude = 45.5
+    local targetLongitude = 120.5
+    local desiredCoverageAreaInMeters = 55000
 
---     areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
---     assert.are.equal(3, #areaBoxes)
---     for i=1, #expectedBoxes do
---       assert.is_true(setContainsBox(areaBoxes, expectedBoxes[i]))
---     end
---   end)
---   it("returns multiple boxes to cover the desired area along longitudes")
---   it("returns a large number of boxes to cover the desired area")
--- end)
+    local expectedNumberOfBoxes = 3
+    local expectedBoxes = {
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude-1
+      }),
+      BoundingBox:new({
+        targetLatitude = targetLatitude,
+        targetLongitude = targetLongitude+1
+      })
+    }
+
+    areaBoxes = boundingBoxModule.boxesForCoverageArea(targetLatitude, targetLongitude, desiredCoverageAreaInMeters)
+    assert.are.equal(3, #areaBoxes)
+    for i=1, #expectedBoxes do
+      assert.is_true(setContainsBox(areaBoxes, expectedBoxes[i]), "Box index " .. i .. " is not in set")
+    end
+  end)
+  it("returns multiple boxes to cover the desired area along longitudes")
+  it("returns a large number of boxes to cover the desired area")
+  it("works around the antimeridian")
+  it("works around the poles")
+end)
